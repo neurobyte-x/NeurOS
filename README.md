@@ -1,4 +1,4 @@
-# Thinking OS
+# NeurOS
 
 > A personal knowledge system that captures **thinking patterns**, not just solutions.
 
@@ -16,7 +16,7 @@ Most note-taking systems capture what you learned. Thinking OS captures **how** 
 ### Backend Setup
 
 ```bash
-cd newyear/backend
+cd NeurOS/backend
 
 # Create virtual environment
 python -m venv venv
@@ -36,7 +36,7 @@ API docs at `http://localhost:8000/docs`
 ### Frontend Setup
 
 ```bash
-cd newyear/frontend
+cd NeurOS/frontend
 
 # Install dependencies
 npm install
@@ -99,30 +99,80 @@ GET  /api/v1/analytics/revision-queue   # Get items due for revision
 ## Project Structure
 
 ```
-newyear/
+NeurOS/
 ├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration
-│   ├── database.py          # SQLite setup
-│   ├── models/              # SQLAlchemy models
+│   ├── main.py                      # FastAPI application
+│   ├── config.py                    # Configuration
+│   ├── database.py                  # SQLite setup
+│   ├── requirements.txt             # Python dependencies
+│   ├── data/                        # Database files
+│   ├── models/                      # SQLAlchemy models
+│   │   ├── __init__.py
+│   │   ├── analytics.py
 │   │   ├── entry.py
-│   │   ├── reflection.py
+│   │   ├── learning_plan.py
 │   │   ├── pattern.py
-│   │   └── analytics.py
-│   ├── schemas/             # Pydantic schemas
-│   ├── services/            # Business logic
+│   │   ├── recommendation.py
+│   │   └── reflection.py
+│   ├── schemas/                     # Pydantic schemas
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── entry.py
+│   │   ├── learning_plan.py
+│   │   ├── pattern.py
+│   │   ├── recommendation.py
+│   │   └── reflection.py
+│   ├── services/                    # Business logic
+│   │   ├── __init__.py
+│   │   ├── ai_service.py
+│   │   ├── analytics_service.py
 │   │   ├── entry_service.py
 │   │   ├── pattern_service.py
+│   │   ├── plan_service.py
 │   │   ├── recall_service.py
-│   │   └── analytics_service.py
-│   └── routes/              # API endpoints
+│   │   └── recommendation_service.py
+│   └── routes/                      # API endpoints
+│       ├── __init__.py
+│       ├── ai.py
+│       ├── analytics.py
+│       ├── entries.py
+│       ├── patterns.py
+│       ├── plans.py
+│       ├── recall.py
+│       └── recommendations.py
 │
 └── frontend/
-    ├── src/
-    │   ├── pages/           # React pages
-    │   ├── components/      # Reusable components
-    │   └── lib/             # API client, types
-    └── package.json
+    ├── index.html
+    ├── package.json
+    ├── vite.config.ts
+    ├── tailwind.config.js
+    ├── postcss.config.js
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    ├── public/
+    └── src/
+        ├── App.tsx
+        ├── main.tsx
+        ├── index.css
+        ├── vite-env.d.ts
+        ├── components/              # Reusable components
+        │   ├── EntryCard.tsx
+        │   ├── EntryTypeBadge.tsx
+        │   ├── Layout.tsx
+        │   └── ReflectionForm.tsx
+        ├── lib/                     # API client, types
+        │   ├── api.ts
+        │   └── types.ts
+        └── pages/                   # React pages
+            ├── Analytics.tsx
+            ├── Dashboard.tsx
+            ├── EntryDetail.tsx
+            ├── NewEntry.tsx
+            ├── Patterns.tsx
+            ├── Plans.tsx
+            ├── Recall.tsx
+            ├── Recommendations.tsx
+            └── Revision.tsx
 ```
 
 ## Future Extensions
