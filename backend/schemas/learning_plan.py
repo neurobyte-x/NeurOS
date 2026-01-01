@@ -12,8 +12,6 @@ from pydantic import BaseModel, Field
 from models.learning_plan import PlanType, PlanStatus, MilestoneStatus
 
 
-# === Request Schemas ===
-
 class CreatePlanRequest(BaseModel):
     """
     Request to generate a new learning plan.
@@ -23,7 +21,6 @@ class CreatePlanRequest(BaseModel):
     """
     plan_type: PlanType = Field(..., description="Type of plan to create")
     
-    # Goals
     primary_goal: str = Field(
         ..., 
         min_length=10,
@@ -35,7 +32,6 @@ class CreatePlanRequest(BaseModel):
         description="Additional goals"
     )
     
-    # Time availability
     start_date: Optional[date] = Field(
         None, 
         description="When to start (default: today)"
@@ -59,19 +55,16 @@ class CreatePlanRequest(BaseModel):
         description="Days per week available"
     )
     
-    # Current level assessment (1-10 scale)
     current_dsa_level: Optional[int] = Field(None, ge=1, le=10)
     current_cp_level: Optional[int] = Field(None, ge=1, le=10)
     current_backend_level: Optional[int] = Field(None, ge=1, le=10)
     current_ai_ml_level: Optional[int] = Field(None, ge=1, le=10)
     
-    # Target levels
     target_dsa_level: Optional[int] = Field(None, ge=1, le=10)
     target_cp_level: Optional[int] = Field(None, ge=1, le=10)
     target_backend_level: Optional[int] = Field(None, ge=1, le=10)
     target_ai_ml_level: Optional[int] = Field(None, ge=1, le=10)
     
-    # Preferences
     focus_areas: Optional[List[str]] = Field(
         None,
         description="Specific topics to focus on"
@@ -122,8 +115,6 @@ class AdaptPlanRequest(BaseModel):
     extend_weeks: Optional[int] = Field(None, ge=0, le=12)
     shift_focus: Optional[List[str]] = None
 
-
-# === Response Schemas ===
 
 class DailyTaskResponse(BaseModel):
     """Individual task in a schedule."""
@@ -200,14 +191,12 @@ class LearningPlanResponse(BaseModel):
     secondary_goals: List[str] = []
     target_outcome: Optional[str] = None
     
-    # Dates
     start_date: Optional[date] = None
     target_end_date: Optional[date] = None
     actual_end_date: Optional[date] = None
     daily_time_minutes: int
     weekly_days: int
     
-    # Levels
     initial_dsa_level: Optional[int] = None
     initial_cp_level: Optional[int] = None
     initial_backend_level: Optional[int] = None
@@ -217,13 +206,11 @@ class LearningPlanResponse(BaseModel):
     target_backend_level: Optional[int] = None
     target_ai_ml_level: Optional[int] = None
     
-    # Progress
     total_milestones: int
     completed_milestones: int
     progress_percentage: float
     current_week: int
     
-    # Timestamps
     created_at: datetime
     updated_at: datetime
     

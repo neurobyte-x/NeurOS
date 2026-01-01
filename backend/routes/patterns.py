@@ -118,7 +118,6 @@ def get_pattern(pattern_id: int, db: Session = Depends(get_db)):
     if not pattern:
         raise HTTPException(404, "Pattern not found")
     
-    # Build response with entries
     entries = [
         {
             "id": ep.entry.id,
@@ -189,7 +188,6 @@ def merge_patterns(
     if source.id == target.id:
         raise HTTPException(400, "Cannot merge pattern with itself")
     
-    # Move all entry associations from source to target
     from models import EntryPattern
     associations = db.query(EntryPattern).filter(
         EntryPattern.pattern_id == source.id
@@ -198,17 +196,14 @@ def merge_patterns(
     for assoc in associations:
         assoc.pattern_id = target.id
     
-    # Update target stats
     target.usage_count += source.usage_count
     
-    # Merge domain tags
     if source.domain_tags:
         source_tags = set(source.domain_tags.split(","))
         target_tags = set((target.domain_tags or "").split(","))
         merged_tags = source_tags | target_tags
         target.domain_tags = ",".join(t for t in merged_tags if t)
     
-    # Delete source
     db.delete(source)
     db.commit()
     

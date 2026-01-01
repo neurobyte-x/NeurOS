@@ -27,8 +27,6 @@ from models.recommendation import (
 )
 
 
-# === Pydantic models for AI output ===
-
 class GeneratedRecommendation(BaseModel):
     """Single recommendation from AI."""
     title: str = Field(description="Clear, actionable title")
@@ -88,7 +86,6 @@ class RecommendationService:
         
         Returns comprehensive profile of user's learning journey.
         """
-        # Get entry statistics by type
         entry_stats = {}
         for entry_type in EntryType:
             count = db.query(Entry).filter(
@@ -97,7 +94,6 @@ class RecommendationService:
             ).count()
             entry_stats[entry_type.value] = count
         
-        # Get recent entries (last 30 days)
         recent_entries = db.query(Entry).filter(
             Entry.is_complete == True,
             Entry.created_at >= datetime.utcnow() - timedelta(days=30)
@@ -116,19 +112,16 @@ class RecommendationService:
                 summary["pattern"] = entry.reflection.key_pattern[:100]
             recent_summary.append(summary)
         
-        # Get common blockers (repeated struggles)
         blockers = db.query(Reflection.initial_blocker).join(Entry).filter(
             Entry.is_complete == True
         ).limit(50).all()
         blocker_texts = [b[0][:100] for b in blockers if b[0]]
         
-        # Get learned patterns
         patterns = db.query(Pattern).filter(
             Pattern.usage_count > 0
         ).order_by(Pattern.usage_count.desc()).limit(20).all()
         pattern_names = [p.name for p in patterns]
         
-        # Difficulty distribution
         difficulties = db.query(Entry.difficulty).filter(
             Entry.is_complete == True,
             Entry.difficulty.isnot(None)
@@ -207,18 +200,14 @@ Generate {count} recommendations based on the user's current focus: {focus}"""
         if not self.llm:
             raise ValueError("Gemini API key not configured")
         
-        # Get user context
         user_context = self._get_user_context(db)
         
-        # Adjust for difficulty preference
         if difficulty_preference:
             user_context["difficulty_preference"] = difficulty_preference
         
-        # Build chain if not exists
         if not self._recommendation_chain:
             self._recommendation_chain = self._build_recommendation_chain()
         
-        # Generate
         domains_str = ", ".join(domains) if domains else "all areas"
         focus_str = current_focus or "general improvement"
         
@@ -241,12 +230,10 @@ Generate {count} recommendations based on the user's current focus: {focus}"""
         recommendations = []
         
         for rec in result.get("recommendations", []):
-            # Map string values to enums
             rec_type = self._map_rec_type(rec.get("rec_type", "concept"))
             domain = self._map_domain(rec.get("domain", "general"))
             priority = self._map_priority(rec.get("priority", "medium"))
             
-            # Create recommendation object
             db_rec = Recommendation(
                 title=rec.get("title", "Untitled"),
                 description=rec.get("description", ""),
@@ -260,7 +247,7 @@ Generate {count} recommendations based on the user's current focus: {focus}"""
                 estimated_minutes=rec.get("estimated_minutes", 30),
                 related_patterns=rec.get("related_patterns", []),
                 prerequisites=rec.get("prerequisites", []),
-                confidence_score=0.8,  # Default confidence
+                confidence_score=0.8,
                 generated_by="gemini-2.5-flash"
             )
             
@@ -352,7 +339,6 @@ Return JSON:
             "domain": domain or "anything"
         })
         
-        # Parse JSON from response
         try:
             import re
             json_match = re.search(r'\{.*\}', result.content, re.DOTALL)
@@ -423,7 +409,6 @@ Return JSON array:
         except:
             pass
         
-        # Default analysis
         return [
             {
                 "domain": "general",
@@ -436,7 +421,6 @@ Return JSON array:
         ]
 
 
-# Singleton instance
 _recommendation_service: Optional[RecommendationService] = None
 
 

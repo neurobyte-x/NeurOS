@@ -28,8 +28,6 @@ from models.learning_plan import (
 )
 
 
-# === Pydantic models for AI output ===
-
 class GeneratedMilestone(BaseModel):
     """Milestone from AI."""
     title: str
@@ -84,7 +82,6 @@ class LearningPlanService:
     def _get_user_history(self, db: Session) -> dict:
         """Get user's learning history for plan context."""
         
-        # Entry counts by type
         entry_stats = {}
         for entry_type in EntryType:
             count = db.query(Entry).filter(
@@ -93,13 +90,11 @@ class LearningPlanService:
             ).count()
             entry_stats[entry_type.value] = count
         
-        # Average difficulty
         avg_diff = db.query(func.avg(Entry.difficulty)).filter(
             Entry.is_complete == True,
             Entry.difficulty.isnot(None)
         ).scalar() or 3.0
         
-        # Recent topics
         recent_entries = db.query(Entry.title, Entry.entry_type).filter(
             Entry.is_complete == True,
             Entry.created_at >= datetime.utcnow() - timedelta(days=30)
@@ -150,10 +145,8 @@ class LearningPlanService:
         
         user_history = self._get_user_history(db)
         
-        # Build the generation prompt
         plan_prompt = self._build_plan_prompt()
         
-        # Generate plan
         try:
             result = plan_prompt | self.llm
             response = result.invoke({
@@ -169,10 +162,8 @@ class LearningPlanService:
                 "user_history": json.dumps(user_history)
             })
             
-            # Parse JSON from response
             plan_data = self._parse_plan_response(response.content)
             
-            # Create plan in database
             return self._create_plan_in_db(
                 db=db,
                 plan_data=plan_data,
@@ -281,7 +272,6 @@ Return JSON:
         """Parse JSON from AI response."""
         import re
         
-        # Try to find JSON in response
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             try:
@@ -289,7 +279,6 @@ Return JSON:
             except json.JSONDecodeError:
                 pass
         
-        # Return default structure if parsing fails
         return {
             "title": "Learning Plan",
             "description": "Generated learning plan",
@@ -316,7 +305,6 @@ Return JSON:
         start_date = date.today()
         target_end_date = start_date + timedelta(weeks=target_weeks)
         
-        # Create main plan
         plan = LearningPlan(
             title=plan_data.get("title", f"{plan_type.value.title()} Plan"),
             description=plan_data.get("description", ""),
@@ -340,9 +328,8 @@ Return JSON:
         )
         
         db.add(plan)
-        db.flush()  # Get the plan ID
+        db.flush()
         
-        # Create milestones
         milestones_data = plan_data.get("milestones", [])
         for idx, ms in enumerate(milestones_data):
             milestone = PlanMilestone(
@@ -362,7 +349,6 @@ Return JSON:
         
         plan.total_milestones = len(milestones_data)
         
-        # Create weekly schedules
         schedules_data = plan_data.get("weekly_schedules", [])
         for ws in schedules_data:
             week_num = ws.get("week_number", 1)
@@ -394,7 +380,6 @@ Return JSON:
         today = date.today()
         day_name = today.strftime("%A").lower()
         
-        # Get active plans
         active_plans = db.query(LearningPlan).filter(
             LearningPlan.status == PlanStatus.ACTIVE
         ).all()
@@ -403,7 +388,6 @@ Return JSON:
         plans_involved = []
         
         for plan in active_plans:
-            # Find current week's schedule
             current_schedule = db.query(WeeklySchedule).filter(
                 WeeklySchedule.plan_id == plan.id,
                 WeeklySchedule.week_start_date <= today,
@@ -451,22 +435,16 @@ Return JSON:
         if not plan:
             raise ValueError("Plan not found")
         
-        # Update time if specified
         if new_daily_time:
             plan.daily_time_minutes = new_daily_time
         
-        # Extend deadline if needed
         if extend_weeks and plan.target_end_date:
             plan.target_end_date = plan.target_end_date + timedelta(weeks=extend_weeks)
         
-        # Record adaptation
         plan.last_adapted_at = datetime.utcnow()
         plan.adaptation_notes = f"{plan.adaptation_notes or ''}\n[{datetime.utcnow().date()}] {reason}"
         
-        # If AI is available, regenerate remaining weeks
         if self.llm and shift_focus:
-            # This would regenerate future weekly schedules
-            # For now, just update the plan record
             pass
         
         db.commit()
@@ -480,7 +458,6 @@ Return JSON:
         if not plan:
             raise ValueError("Plan not found")
         
-        # Milestone progress
         completed_milestones = db.query(PlanMilestone).filter(
             PlanMilestone.plan_id == plan_id,
             PlanMilestone.status == MilestoneStatus.COMPLETED
@@ -490,7 +467,6 @@ Return JSON:
             PlanMilestone.plan_id == plan_id
         ).count()
         
-        # Weekly progress
         completed_weeks = db.query(WeeklySchedule).filter(
             WeeklySchedule.plan_id == plan_id,
             WeeklySchedule.is_completed == True
@@ -500,14 +476,12 @@ Return JSON:
             WeeklySchedule.plan_id == plan_id
         ).count()
         
-        # Calculate current week
         if plan.start_date:
             days_since_start = (date.today() - plan.start_date).days
             current_week = (days_since_start // 7) + 1
         else:
             current_week = 1
         
-        # Update plan progress
         progress_pct = (completed_milestones / total_milestones * 100) if total_milestones > 0 else 0
         plan.progress_percentage = progress_pct
         plan.completed_milestones = completed_milestones
@@ -532,7 +506,6 @@ Return JSON:
         }
 
 
-# Singleton instance
 _plan_service: Optional[LearningPlanService] = None
 
 

@@ -69,54 +69,44 @@ class LearningPlan(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # Plan identity
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=False)
     plan_type = Column(Enum(PlanType), nullable=False, index=True)
     status = Column(Enum(PlanStatus), default=PlanStatus.DRAFT, index=True)
     
-    # Goals and scope
-    primary_goal = Column(Text, nullable=False)  # Main objective
-    secondary_goals = Column(JSON, default=list)  # Additional objectives
-    target_outcome = Column(Text, nullable=True)  # What success looks like
+    primary_goal = Column(Text, nullable=False)
+    secondary_goals = Column(JSON, default=list)
+    target_outcome = Column(Text, nullable=True)
     
-    # Time parameters
     start_date = Column(Date, nullable=True)
     target_end_date = Column(Date, nullable=True)
     actual_end_date = Column(Date, nullable=True)
-    daily_time_minutes = Column(Integer, default=60)  # Available time per day
-    weekly_days = Column(Integer, default=5)          # Days per week
+    daily_time_minutes = Column(Integer, default=60)
+    weekly_days = Column(Integer, default=5)
     
-    # Current level assessment (1-10 scale)
     initial_dsa_level = Column(Integer, nullable=True)
     initial_cp_level = Column(Integer, nullable=True)
     initial_backend_level = Column(Integer, nullable=True)
     initial_ai_ml_level = Column(Integer, nullable=True)
     
-    # Target levels
     target_dsa_level = Column(Integer, nullable=True)
     target_cp_level = Column(Integer, nullable=True)
     target_backend_level = Column(Integer, nullable=True)
     target_ai_ml_level = Column(Integer, nullable=True)
     
-    # Progress tracking
     total_milestones = Column(Integer, default=0)
     completed_milestones = Column(Integer, default=0)
     progress_percentage = Column(Float, default=0.0)
     current_week = Column(Integer, default=1)
     
-    # Adaptation
     last_adapted_at = Column(DateTime, nullable=True)
     adaptation_notes = Column(Text, nullable=True)
     
-    # Generation metadata
     generated_by = Column(String(100), default="gemini")
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     milestones = relationship(
         "PlanMilestone",
         back_populates="plan",
@@ -144,41 +134,32 @@ class PlanMilestone(Base):
     id = Column(Integer, primary_key=True, index=True)
     plan_id = Column(Integer, ForeignKey("learning_plans.id"), nullable=False)
     
-    # Milestone details
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=False)
-    order_index = Column(Integer, nullable=False)  # Order in plan
+    order_index = Column(Integer, nullable=False)
     
-    # Scope
-    topics = Column(JSON, default=list)           # Topics to cover
-    skills_to_gain = Column(JSON, default=list)   # Expected skills
-    success_criteria = Column(Text, nullable=True)  # How to know you're done
+    topics = Column(JSON, default=list)
+    skills_to_gain = Column(JSON, default=list)
+    success_criteria = Column(Text, nullable=True)
     
-    # Time
     estimated_days = Column(Integer, nullable=True)
     target_date = Column(Date, nullable=True)
     completed_date = Column(Date, nullable=True)
     
-    # Status
     status = Column(Enum(MilestoneStatus), default=MilestoneStatus.NOT_STARTED)
     
-    # Resources
-    recommended_resources = Column(JSON, default=list)  # Links, courses, etc.
-    recommended_problems = Column(JSON, default=list)   # Specific problems to solve
+    recommended_resources = Column(JSON, default=list)
+    recommended_problems = Column(JSON, default=list)
     
-    # Progress
     tasks_total = Column(Integer, default=0)
     tasks_completed = Column(Integer, default=0)
     
-    # Reflection (after completion)
     reflection_notes = Column(Text, nullable=True)
-    difficulty_rating = Column(Integer, nullable=True)  # How hard was it (1-5)
+    difficulty_rating = Column(Integer, nullable=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship
     plan = relationship("LearningPlan", back_populates="milestones")
 
 
@@ -193,34 +174,26 @@ class WeeklySchedule(Base):
     id = Column(Integer, primary_key=True, index=True)
     plan_id = Column(Integer, ForeignKey("learning_plans.id"), nullable=False)
     
-    # Week identity
     week_number = Column(Integer, nullable=False)
     week_start_date = Column(Date, nullable=True)
     week_end_date = Column(Date, nullable=True)
     
-    # Focus for this week
-    theme = Column(String(200), nullable=True)   # E.g., "Arrays & Hashing"
-    focus_areas = Column(JSON, default=list)     # Main topics
+    theme = Column(String(200), nullable=True)
+    focus_areas = Column(JSON, default=list)
     
-    # Daily tasks (JSON structure for flexibility)
-    # Format: {day: [{task, type, estimated_minutes, resource_url}]}
     daily_tasks = Column(JSON, default=dict)
     
-    # Goals for the week
     weekly_goals = Column(JSON, default=list)
     problems_to_solve = Column(Integer, default=0)
     concepts_to_learn = Column(Integer, default=0)
     
-    # Tracking
     is_completed = Column(Boolean, default=False)
     completion_notes = Column(Text, nullable=True)
-    actual_time_spent = Column(Integer, nullable=True)  # Total minutes
+    actual_time_spent = Column(Integer, nullable=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship
     plan = relationship("LearningPlan", back_populates="weekly_schedules")
 
 
@@ -235,27 +208,21 @@ class DailyTask(Base):
     id = Column(Integer, primary_key=True, index=True)
     schedule_id = Column(Integer, ForeignKey("weekly_schedules.id"), nullable=False)
     
-    # Task details
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
-    task_type = Column(String(50), nullable=False)  # problem, video, article, practice
+    task_type = Column(String(50), nullable=False)
     
-    # When
-    day_of_week = Column(Integer, nullable=False)  # 0=Monday, 6=Sunday
+    day_of_week = Column(Integer, nullable=False)
     scheduled_date = Column(Date, nullable=True)
     
-    # Resource
     resource_url = Column(String(2000), nullable=True)
     resource_name = Column(String(200), nullable=True)
     
-    # Time
     estimated_minutes = Column(Integer, default=30)
     actual_minutes = Column(Integer, nullable=True)
     
-    # Completion
     is_completed = Column(Boolean, default=False)
     completed_at = Column(DateTime, nullable=True)
     notes = Column(Text, nullable=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

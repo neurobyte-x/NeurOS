@@ -47,7 +47,6 @@ class PatternBase(BaseModel):
         WHY: Prevents duplicate patterns with different casing/spacing.
         """
         if isinstance(v, str):
-            # Strip, lowercase for comparison, but keep original case
             v = v.strip()
         return v
 
@@ -112,11 +111,11 @@ class EntryPatternCreate(BaseModel):
     with relationship-specific metadata.
     """
     entry_id: int
-    pattern_id: Optional[int] = None  # If linking to existing pattern
-    pattern_name: Optional[str] = None  # If creating new pattern inline
+    pattern_id: Optional[int] = None
+    pattern_name: Optional[str] = None
     relevance_score: float = Field(1.0, ge=0.0, le=1.0)
     application_notes: Optional[str] = None
-    was_successful: int = Field(1, ge=-1, le=1)  # -1=partial, 0=no, 1=yes
+    was_successful: int = Field(1, ge=-1, le=1)
     
     @field_validator('pattern_id', 'pattern_name', mode='before')
     @classmethod
@@ -133,7 +132,7 @@ class PatternSearchResult(BaseModel):
     """
     pattern: PatternResponse
     relevance: float = Field(..., ge=0.0, le=1.0)
-    match_reason: str  # Why this pattern was suggested
+    match_reason: str
     
     class Config:
         from_attributes = True

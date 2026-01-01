@@ -34,7 +34,6 @@ async def lifespan(app: FastAPI):
     WHY: Initialize database on startup.
     Future: Add cleanup, background tasks.
     """
-    # Startup
     print("🧠 Initializing Thinking OS...")
     init_db()
     print("✅ Database initialized")
@@ -42,11 +41,9 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown
     print("👋 Thinking OS shutting down...")
 
 
-# Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     description="""
@@ -70,20 +67,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
 
-# Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -94,7 +88,6 @@ async def health_check():
     }
 
 
-# Root endpoint with welcome message
 @app.get("/")
 async def root():
     """Welcome endpoint with quick start guide."""
@@ -113,7 +106,6 @@ async def root():
     }
 
 
-# Serve frontend static files if available
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")

@@ -36,7 +36,6 @@ def get_recall_context(
     """
     service = RecallService(db)
     
-    # Parse entry type
     entry_type = None
     if context.entry_type:
         try:
@@ -58,7 +57,7 @@ def get_recall_context(
 def get_similar_entries(
     title: Optional[str] = None,
     entry_type: Optional[str] = None,
-    keywords: Optional[str] = None,  # Comma-separated
+    keywords: Optional[str] = None,
     limit: int = Query(5, ge=1, le=20),
     db: Session = Depends(get_db)
 ):

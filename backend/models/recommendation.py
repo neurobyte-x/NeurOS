@@ -75,43 +75,35 @@ class Recommendation(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # Core recommendation data
     title = Column(String(500), nullable=False)
-    description = Column(Text, nullable=False)  # Detailed explanation
+    description = Column(Text, nullable=False)
     rec_type = Column(Enum(RecommendationType), nullable=False, index=True)
     domain = Column(Enum(RecommendationDomain), nullable=False, index=True)
     priority = Column(Enum(RecommendationPriority), default=RecommendationPriority.MEDIUM)
     
-    # WHY this is recommended - crucial for learning
     reasoning = Column(Text, nullable=False)
     
-    # Specific details based on type
     resource_url = Column(String(2000), nullable=True)
-    resource_name = Column(String(200), nullable=True)  # "LeetCode", "NeetCode", etc.
-    difficulty_level = Column(Integer, nullable=True)  # 1-5
+    resource_name = Column(String(200), nullable=True)
+    difficulty_level = Column(Integer, nullable=True)
     estimated_minutes = Column(Integer, nullable=True)
     
-    # Related topics/patterns
-    related_patterns = Column(JSON, default=list)  # List of pattern names
-    prerequisites = Column(JSON, default=list)     # What you need to know first
+    related_patterns = Column(JSON, default=list)
+    prerequisites = Column(JSON, default=list)
     
-    # Tracking
     is_completed = Column(Boolean, default=False, index=True)
     is_dismissed = Column(Boolean, default=False, index=True)
     completed_at = Column(DateTime, nullable=True)
     
-    # User feedback for improving future recommendations
-    user_rating = Column(Integer, nullable=True)  # 1-5 how helpful
+    user_rating = Column(Integer, nullable=True)
     user_feedback = Column(Text, nullable=True)
     
-    # Generation metadata
-    generated_by = Column(String(100), default="gemini")  # AI model used
-    confidence_score = Column(Float, nullable=True)  # AI's confidence
+    generated_by = Column(String(100), default="gemini")
+    confidence_score = Column(Float, nullable=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    expires_at = Column(DateTime, nullable=True)  # Some recommendations are time-sensitive
+    expires_at = Column(DateTime, nullable=True)
     
     def __repr__(self):
         return f"<Recommendation(id={self.id}, title='{self.title}', type={self.rec_type.value})>"

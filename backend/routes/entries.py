@@ -57,7 +57,6 @@ def list_entries(
     """
     service = EntryService(db)
     
-    # Convert entry_type string to enum
     type_enum = None
     if entry_type:
         try:
@@ -97,7 +96,7 @@ def list_incomplete_entries(db: Session = Depends(get_db)):
 @router.get("/search", response_model=List[EntryWithReflection])
 def search_entries(
     q: str = Query(..., min_length=1),
-    entry_types: Optional[str] = None,  # Comma-separated
+    entry_types: Optional[str] = None,
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
@@ -115,7 +114,6 @@ def search_entries(
     
     entries = service.search_entries(q, type_list, limit)
     
-    # Convert to response format with nested data
     results = []
     for entry in entries:
         result = EntryWithReflection.model_validate(entry)
@@ -144,7 +142,6 @@ def get_entry(entry_id: int, db: Session = Depends(get_db)):
     if not entry:
         raise HTTPException(404, "Entry not found")
     
-    # Build response with nested patterns
     response_data = {
         "id": entry.id,
         "title": entry.title,
@@ -229,7 +226,6 @@ def add_reflection(
     entry_service = EntryService(db)
     recall_service = RecallService(db)
     
-    # Check entry exists
     entry = entry_service.get_entry(entry_id)
     if not entry:
         raise HTTPException(404, "Entry not found")
@@ -237,7 +233,6 @@ def add_reflection(
     if entry.reflection:
         raise HTTPException(400, "Entry already has reflection. Use PUT to update.")
     
-    # Create reflection
     reflection = Reflection(
         entry_id=entry_id,
         context=reflection_data.context,
@@ -251,7 +246,6 @@ def add_reflection(
         confidence_level=reflection_data.confidence_level,
     )
     
-    # Validate completeness
     if not reflection.is_complete():
         raise HTTPException(
             422, 
@@ -259,19 +253,16 @@ def add_reflection(
             "context, initial_blocker, trigger_signal, key_pattern, mistake_or_edge_case"
         )
     
-    # Add reflection and complete entry
     entry = entry_service.add_reflection(entry_id, reflection)
     
-    # Record blocker for analytics
     recall_service.record_blocker(entry_id, reflection_data.initial_blocker)
     
-    # Auto-create or link pattern from key_pattern
     pattern_service = PatternService(db)
     try:
         pattern = pattern_service.get_or_create_pattern(reflection_data.key_pattern)
         pattern_service.associate_pattern_with_entry(entry_id, pattern.id)
     except Exception:
-        pass  # Pattern creation is best-effort
+        pass
     
     return entry_service.get_entry(entry_id)
 
@@ -292,7 +283,6 @@ def update_reflection(
     if not entry.reflection:
         raise HTTPException(400, "Entry has no reflection. Use POST to create.")
     
-    # Update reflection fields
     reflection = entry.reflection
     reflection.context = reflection_data.context
     reflection.initial_blocker = reflection_data.initial_blocker

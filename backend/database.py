@@ -14,17 +14,13 @@ from sqlalchemy.pool import StaticPool
 
 from config import settings
 
-# WHY: SQLite-specific settings for single-file database
-# StaticPool for SQLite to handle multi-threading safely
-# check_same_thread=False required for FastAPI async context
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
-    echo=settings.DEBUG  # Log SQL in debug mode
+    echo=settings.DEBUG
 )
 
-# WHY: Enable foreign key constraints in SQLite (disabled by default)
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
@@ -32,11 +28,8 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 
 
-# Session factory
-# WHY: autocommit=False, autoflush=False for explicit transaction control
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for all models
 Base = declarative_base()
 
 
@@ -66,7 +59,6 @@ def init_db():
     - Testing with fresh databases
     - Future migration system integration
     """
-    # Import models to register them with Base
     from models import entry, pattern, reflection, analytics, recommendation, learning_plan
     
     Base.metadata.create_all(bind=engine)

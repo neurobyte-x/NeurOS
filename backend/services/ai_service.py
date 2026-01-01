@@ -19,7 +19,6 @@ from langchain_core.output_parsers import JsonOutputParser
 from config import settings
 
 
-# Pydantic model for structured output
 class ExtractedLearning(BaseModel):
     """Structured learning data extracted from natural language."""
     entry_type: str = Field(description="One of: dsa, backend, ai_ml, debug, interview, concept, project")
@@ -125,7 +124,6 @@ A developer is describing a problem-solving or learning experience. Extract the 
                 "format_instructions": self.parser.get_format_instructions()
             })
             
-            # Validate and normalize entry_type
             result = self._normalize_result(result)
             return result
             
@@ -135,7 +133,6 @@ A developer is describing a problem-solving or learning experience. Extract the 
     def _normalize_result(self, data: dict) -> dict:
         """Normalize and validate extracted data."""
         
-        # Validate entry_type
         valid_types = ['dsa', 'backend', 'ai_ml', 'debug', 'interview', 'concept', 'project']
         if data.get('entry_type') not in valid_types:
             type_mapping = {
@@ -154,19 +151,16 @@ A developer is describing a problem-solving or learning experience. Extract the 
                 'concept'
             )
         
-        # Ensure defaults
         data.setdefault('suggested_patterns', [])
         data.setdefault('time_spent_minutes', 30)
         data.setdefault('difficulty', 3)
         
-        # Ensure lists are lists
         if isinstance(data.get('suggested_patterns'), str):
             data['suggested_patterns'] = [p.strip() for p in data['suggested_patterns'].split(',')]
         
         return data
 
 
-# Singleton instance
 _ai_service: Optional[AIService] = None
 
 

@@ -16,8 +16,6 @@ from models.recommendation import (
 )
 
 
-# === Request Schemas ===
-
 class GenerateRecommendationsRequest(BaseModel):
     """
     Request to generate personalized recommendations.
@@ -67,8 +65,6 @@ class RecommendationUpdate(BaseModel):
     is_completed: Optional[bool] = None
     is_dismissed: Optional[bool] = None
 
-
-# === Response Schemas ===
 
 class RecommendationBase(BaseModel):
     """Base recommendation fields."""
@@ -147,7 +143,7 @@ class SkillGapAnalysis(BaseModel):
     Used to explain WHY certain recommendations are made.
     """
     domain: str
-    current_level: int  # 1-10
+    current_level: int
     identified_gaps: List[str]
     strengths: List[str]
     improvement_areas: List[str]
@@ -162,4 +158,4 @@ class RecommendationDashboard(BaseModel):
     skill_gaps: List[SkillGapAnalysis]
     daily_suggestion: Optional[QuickRecommendation] = None
     weekly_focus: Optional[str] = None
-    stats: dict  # Completion rates, etc.
+    stats: dict

@@ -42,35 +42,23 @@ class Pattern(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # Core identification
-    # WHY: User-defined name is key - "two pointer dance" vs "two pointers"
     name = Column(String(200), nullable=False, unique=True, index=True)
     
-    # Description in user's words
     description = Column(Text, nullable=True)
     
-    # Domain applicability (comma-separated for simplicity)
-    # WHY: Patterns often cross domains - "bottleneck identification"
-    # applies to DSA, Backend, and debugging
-    domain_tags = Column(String(500), nullable=True)  # "dsa,backend,debug"
+    domain_tags = Column(String(500), nullable=True)
     
-    # Trigger signals that indicate this pattern
-    # WHY: Capture what clues suggest this pattern applies
     common_triggers = Column(Text, nullable=True)
     
-    # Common mistakes when applying this pattern
     common_mistakes = Column(Text, nullable=True)
     
-    # Analytics
     usage_count = Column(Integer, default=0)
-    success_rate = Column(Float, default=0.0)  # 0.0 to 1.0
+    success_rate = Column(Float, default=0.0)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_used_at = Column(DateTime, nullable=True)
     
-    # Relationships
     entries = relationship("EntryPattern", back_populates="pattern")
     
     def __repr__(self):
@@ -92,20 +80,14 @@ class EntryPattern(Base):
     entry_id = Column(Integer, ForeignKey("entries.id"), nullable=False)
     pattern_id = Column(Integer, ForeignKey("patterns.id"), nullable=False)
     
-    # Relationship metadata
-    # WHY: How strongly did this pattern manifest?
-    relevance_score = Column(Float, default=1.0)  # 0.0 to 1.0
+    relevance_score = Column(Float, default=1.0)
     
-    # Notes specific to this pattern-entry relationship
     application_notes = Column(Text, nullable=True)
     
-    # Was applying this pattern successful?
     was_successful = Column(Integer, default=1)  # 1=yes, 0=no, -1=partial
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationships
     entry = relationship("Entry", back_populates="patterns")
     pattern = relationship("Pattern", back_populates="entries")
     

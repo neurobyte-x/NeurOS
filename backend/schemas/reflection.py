@@ -19,7 +19,6 @@ class ReflectionBase(BaseModel):
     they're not empty strings or whitespace-only.
     """
     
-    # MANDATORY - These are the heart of Thinking OS
     context: str = Field(
         ..., 
         min_length=10,
@@ -47,7 +46,6 @@ class ReflectionBase(BaseModel):
         description="One mistake or edge case to remember (minimum 5 chars)"
     )
     
-    # OPTIONAL but valuable
     time_to_insight_minutes: Optional[int] = Field(
         None,
         ge=0,
@@ -101,7 +99,6 @@ class ReflectionCreate(ReflectionBase):
         WHY: Prevent low-effort reflections like 
         "just solved it" or "it worked".
         """
-        # Check that context and blocker are different
         if self.context.lower() == self.initial_blocker.lower():
             raise ValueError(
                 "Context and Initial Blocker should be different. "

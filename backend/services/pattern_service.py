@@ -36,7 +36,6 @@ class PatternService:
         WHY: Patterns are user-defined, not textbook.
         This preserves personal vocabulary.
         """
-        # Check for existing pattern with similar name
         existing = self.db.query(Pattern).filter(
             func.lower(Pattern.name) == pattern_data.name.lower()
         ).first()
@@ -96,7 +95,6 @@ class PatternService:
         
         total = query.count()
         
-        # Sort
         if sort_by == "usage_count":
             query = query.order_by(desc(Pattern.usage_count))
         elif sort_by == "name":
@@ -121,7 +119,6 @@ class PatternService:
         
         update_data = pattern_data.model_dump(exclude_unset=True)
         
-        # Check for name conflict if name is being changed
         if "name" in update_data:
             existing = self.db.query(Pattern).filter(
                 func.lower(Pattern.name) == update_data["name"].lower(),
@@ -165,21 +162,18 @@ class PatternService:
         WHY: One entry can demonstrate multiple patterns.
         This builds the knowledge graph.
         """
-        # Check if association already exists
         existing = self.db.query(EntryPattern).filter(
             EntryPattern.entry_id == entry_id,
             EntryPattern.pattern_id == pattern_id
         ).first()
         
         if existing:
-            # Update existing association
             existing.relevance_score = relevance_score
             existing.application_notes = application_notes
             existing.was_successful = was_successful
             self.db.commit()
             return existing
         
-        # Create new association
         entry_pattern = EntryPattern(
             entry_id=entry_id,
             pattern_id=pattern_id,
@@ -190,7 +184,6 @@ class PatternService:
         
         self.db.add(entry_pattern)
         
-        # Update pattern usage stats
         pattern = self.db.query(Pattern).filter(Pattern.id == pattern_id).first()
         if pattern:
             pattern.usage_count += 1
@@ -252,20 +245,16 @@ class PatternService:
         Returns:
             List of potentially relevant patterns
         """
-        # Get all patterns for the entry's domain
         domain_patterns = self.db.query(Pattern).filter(
             Pattern.domain_tags.ilike(f"%{entry.entry_type.value}%")
         ).all()
         
-        # Also get high-usage patterns (likely relevant)
         frequent_patterns = self.db.query(Pattern).order_by(
             desc(Pattern.usage_count)
         ).limit(10).all()
         
-        # Combine and deduplicate
         all_patterns = {p.id: p for p in domain_patterns + frequent_patterns}
         
-        # Simple keyword matching with entry title
         title_words = set(entry.title.lower().split())
         scored_patterns = []
         
@@ -273,22 +262,18 @@ class PatternService:
             score = 0
             pattern_words = set(pattern.name.lower().split())
             
-            # Word overlap score
             overlap = len(title_words & pattern_words)
             if overlap > 0:
                 score += overlap * 2
             
-            # Domain match bonus
             if pattern.domain_tags and entry.entry_type.value in pattern.domain_tags:
                 score += 1
             
-            # Usage bonus (popular patterns are often relevant)
             score += min(pattern.usage_count / 10, 1)
             
             if score > 0:
                 scored_patterns.append((pattern, score))
         
-        # Sort by score and return top suggestions
         scored_patterns.sort(key=lambda x: x[1], reverse=True)
         return [p for p, _ in scored_patterns[:5]]
     
@@ -315,17 +300,14 @@ class PatternService:
         """Get aggregate statistics about patterns."""
         total = self.db.query(func.count(Pattern.id)).scalar()
         
-        # Most used patterns
         most_used = self.db.query(Pattern).order_by(
             desc(Pattern.usage_count)
         ).limit(5).all()
         
-        # Highest success rate (with minimum usage)
         high_success = self.db.query(Pattern).filter(
             Pattern.usage_count >= 3
         ).order_by(desc(Pattern.success_rate)).limit(5).all()
         
-        # Unused patterns (created but never applied)
         unused = self.db.query(func.count(Pattern.id)).filter(
             Pattern.usage_count == 0
         ).scalar()

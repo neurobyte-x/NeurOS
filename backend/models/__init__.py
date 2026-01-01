@@ -27,12 +27,10 @@ __all__ = [
     "BlockerAnalytics",
     "RevisionHistory",
     "DailyStats",
-    # Recommendations
     "Recommendation",
     "RecommendationType",
     "RecommendationPriority",
     "RecommendationDomain",
-    # Learning Plans
     "LearningPlan",
     "PlanMilestone",
     "WeeklySchedule",

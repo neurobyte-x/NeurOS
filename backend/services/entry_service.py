@@ -97,7 +97,6 @@ class EntryService:
         """
         query = self.db.query(Entry)
         
-        # Apply filters
         if entry_type:
             query = query.filter(Entry.entry_type == entry_type)
         
@@ -107,10 +106,8 @@ class EntryService:
         if search_query:
             query = query.filter(Entry.title.ilike(f"%{search_query}%"))
         
-        # Get total count before pagination
         total = query.count()
         
-        # Apply pagination and ordering
         entries = query.order_by(desc(Entry.created_at)).offset(
             (page - 1) * page_size
         ).limit(page_size).all()
@@ -124,7 +121,6 @@ class EntryService:
         if not entry:
             return None
         
-        # Update only provided fields
         update_data = entry_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(entry, field, value)
@@ -170,7 +166,6 @@ class EntryService:
         if not entry:
             raise ValueError(f"Entry {entry_id} not found")
         
-        # Validate reflection completeness
         if not reflection.is_complete():
             raise ValueError("Reflection is missing mandatory fields")
         
@@ -236,7 +231,6 @@ class EntryService:
             joinedload(Entry.reflection)
         )
         
-        # Search in title and reflection fields
         db_query = db_query.filter(
             (Entry.title.ilike(f"%{query}%")) |
             (Entry.reflection.has(Reflection.context.ilike(f"%{query}%"))) |
@@ -260,7 +254,6 @@ class EntryService:
             Entry.is_complete == True
         ).scalar()
         
-        # Count by type
         by_type = {}
         for entry_type in EntryType:
             count = self.db.query(func.count(Entry.id)).filter(
@@ -268,7 +261,6 @@ class EntryService:
             ).scalar()
             by_type[entry_type.value] = count
         
-        # Average time spent
         avg_time = self.db.query(func.avg(Entry.time_spent_minutes)).filter(
             Entry.time_spent_minutes.isnot(None)
         ).scalar()

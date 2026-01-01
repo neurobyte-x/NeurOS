@@ -52,7 +52,6 @@ async def generate_recommendations(
     service = get_recommendation_service()
     
     try:
-        # Convert domains enum list to string list
         domains = [d.value for d in request.domains] if request.domains else None
         
         recommendations = service.generate_recommendations(
@@ -63,7 +62,6 @@ async def generate_recommendations(
             difficulty_preference=request.difficulty_preference
         )
         
-        # Fetch the created recommendations from DB
         recent_recs = db.query(Recommendation).order_by(
             Recommendation.created_at.desc()
         ).limit(request.count).all()
@@ -130,7 +128,6 @@ async def get_recommendation_dashboard(db: Session = Depends(get_db)):
     """
     service = get_recommendation_service()
     
-    # Get active (non-completed, non-dismissed) recommendations
     active_recs = db.query(Recommendation).filter(
         Recommendation.is_completed == False,
         Recommendation.is_dismissed == False
@@ -139,19 +136,16 @@ async def get_recommendation_dashboard(db: Session = Depends(get_db)):
         Recommendation.created_at.desc()
     ).limit(10).all()
     
-    # Get skill gaps
     try:
         skill_gaps = service.analyze_skill_gaps(db)
     except:
         skill_gaps = []
     
-    # Get quick suggestion
     try:
         daily_suggestion = service.get_quick_recommendation(db, 30)
     except:
         daily_suggestion = None
     
-    # Stats
     total = db.query(Recommendation).count()
     completed = db.query(Recommendation).filter(Recommendation.is_completed == True).count()
     dismissed = db.query(Recommendation).filter(Recommendation.is_dismissed == True).count()
@@ -187,7 +181,6 @@ async def list_recommendations(
     """
     query = db.query(Recommendation)
     
-    # Apply filters
     if domain:
         query = query.filter(Recommendation.domain == domain)
     if rec_type:
@@ -197,7 +190,6 @@ async def list_recommendations(
     if is_completed is not None:
         query = query.filter(Recommendation.is_completed == is_completed)
     
-    # Get counts
     total = query.count()
     pending = query.filter(
         Recommendation.is_completed == False,
@@ -206,7 +198,6 @@ async def list_recommendations(
     completed_count = db.query(Recommendation).filter(Recommendation.is_completed == True).count()
     dismissed_count = db.query(Recommendation).filter(Recommendation.is_dismissed == True).count()
     
-    # Paginate
     recommendations = query.order_by(
         Recommendation.priority.desc(),
         Recommendation.created_at.desc()

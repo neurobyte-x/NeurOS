@@ -35,25 +35,18 @@ class BlockerAnalytics(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # Normalized blocker description
-    # WHY: Canonical form for matching similar blockers
     blocker_text = Column(Text, nullable=False)
     
-    # Category (auto-derived or user-specified)
     blocker_category = Column(String(200), nullable=True, index=True)
     
-    # Occurrences
     occurrence_count = Column(Integer, default=1)
-    entry_ids = Column(Text, nullable=False)  # JSON array of entry IDs
+    entry_ids = Column(Text, nullable=False)
     
-    # Resolution tracking
     times_resolved = Column(Integer, default=0)
     avg_resolution_time_minutes = Column(Float, nullable=True)
     
-    # Is this a chronic blocker? (exceeds threshold)
     is_flagged = Column(Boolean, default=False, index=True)
     
-    # Timestamps
     first_seen_at = Column(DateTime, default=datetime.utcnow)
     last_seen_at = Column(DateTime, default=datetime.utcnow)
     
@@ -76,27 +69,20 @@ class RevisionHistory(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # What was revised
     entry_id = Column(Integer, ForeignKey("entries.id"), nullable=True)
     pattern_id = Column(Integer, ForeignKey("patterns.id"), nullable=True)
     
-    # Revision session details
-    revision_type = Column(String(50), nullable=False)  # "entry", "pattern", "blocker"
+    revision_type = Column(String(50), nullable=False)
     
-    # Self-assessment after revision
-    recall_quality = Column(Integer, nullable=False)  # 1-5: how well did you remember?
-    confidence_after = Column(Integer, nullable=True)  # 1-5: confidence now
+    recall_quality = Column(Integer, nullable=False)
+    confidence_after = Column(Integer, nullable=True)
     
-    # Notes during revision
     revision_notes = Column(Text, nullable=True)
     
-    # Time spent
     time_spent_minutes = Column(Integer, nullable=True)
     
-    # Timestamp
     revised_at = Column(DateTime, default=datetime.utcnow, index=True)
     
-    # Calculated next review date (for spaced repetition)
     next_review_at = Column(DateTime, nullable=True, index=True)
     
     def __repr__(self):
@@ -115,7 +101,6 @@ class DailyStats(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(DateTime, nullable=False, unique=True, index=True)
     
-    # Entry counts by type
     entries_total = Column(Integer, default=0)
     entries_dsa = Column(Integer, default=0)
     entries_backend = Column(Integer, default=0)
@@ -123,15 +108,12 @@ class DailyStats(Base):
     entries_debug = Column(Integer, default=0)
     entries_interview = Column(Integer, default=0)
     
-    # Pattern stats
     patterns_used = Column(Integer, default=0)
     new_patterns = Column(Integer, default=0)
     
-    # Time tracking
     total_time_minutes = Column(Integer, default=0)
     avg_time_to_insight = Column(Float, nullable=True)
     
-    # Blocker stats
     blockers_encountered = Column(Integer, default=0)
     repeated_blockers = Column(Integer, default=0)
     

@@ -31,13 +31,13 @@ class EntryType(enum.Enum):
     cross-domain pattern discovery. Each type may have slightly
     different context requirements.
     """
-    DSA = "dsa"                    # Data Structures & Algorithms / CP
-    BACKEND = "backend"            # FastAPI, APIs, system design
-    AI_ML = "ai_ml"                # Machine Learning, GenAI, experiments
-    DEBUG = "debug"                # Bug fixes, debugging sessions
-    INTERVIEW = "interview"        # Interview questions, mock sessions
-    CONCEPT = "concept"            # Pure learning, theory understanding
-    PROJECT = "project"            # Project-based learning
+    DSA = "dsa"
+    BACKEND = "backend"
+    AI_ML = "ai_ml"
+    DEBUG = "debug"
+    INTERVIEW = "interview"
+    CONCEPT = "concept"
+    PROJECT = "project"
 
 
 class Entry(Base):
@@ -57,36 +57,26 @@ class Entry(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
-    # Core identification
     title = Column(String(500), nullable=False, index=True)
     entry_type = Column(Enum(EntryType), nullable=False, index=True)
     
-    # Context fields
-    source_url = Column(String(2000), nullable=True)  # LeetCode link, docs, etc.
-    source_name = Column(String(200), nullable=True)  # "LeetCode", "Codeforces", etc.
+    source_url = Column(String(2000), nullable=True)
+    source_name = Column(String(200), nullable=True)
     
-    # Metadata
-    difficulty = Column(Integer, nullable=True)  # 1-5 scale, user-defined
+    difficulty = Column(Integer, nullable=True)
     time_spent_minutes = Column(Integer, nullable=True)
     
-    # Solution/code (optional - this is NOT the focus)
     code_snippet = Column(Text, nullable=True)
-    language = Column(String(50), nullable=True)  # python, cpp, etc.
+    language = Column(String(50), nullable=True)
     
-    # Completion tracking
-    # WHY: Entry must have reflection to be considered complete
     is_complete = Column(Boolean, default=False, index=True)
     has_reflection = Column(Boolean, default=False, index=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Future: Embedding for semantic search
-    # Stored as JSON string of float array
     embedding = Column(Text, nullable=True)
     
-    # Relationships
     reflection = relationship(
         "Reflection", 
         back_populates="entry", 

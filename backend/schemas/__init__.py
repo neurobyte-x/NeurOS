@@ -23,26 +23,22 @@ from schemas.analytics import (
 )
 
 __all__ = [
-    # Entry schemas
     "EntryCreate",
     "EntryUpdate", 
     "EntryResponse",
     "EntryWithReflection",
     "EntryListResponse",
     
-    # Reflection schemas
     "ReflectionCreate",
     "ReflectionUpdate",
     "ReflectionResponse",
     
-    # Pattern schemas
     "PatternCreate",
     "PatternUpdate",
     "PatternResponse",
     "PatternWithEntries",
     "EntryPatternCreate",
     
-    # Analytics schemas
     "BlockerAnalyticsResponse",
     "RevisionCreate",
     "RevisionResponse",

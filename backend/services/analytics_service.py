@@ -64,7 +64,6 @@ class AnalyticsService:
         
         self.db.add(revision)
         
-        # Update confidence on entry if provided
         if entry_id and confidence_after:
             entry = self.db.query(Entry).filter(Entry.id == entry_id).first()
             if entry and entry.reflection:
@@ -106,7 +105,6 @@ class AnalyticsService:
         start_of_day = date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_day = start_of_day + timedelta(days=1)
         
-        # Count entries by type
         entries_by_type = {}
         for entry_type in EntryType:
             count = self.db.query(func.count(Entry.id)).filter(
@@ -118,26 +116,22 @@ class AnalyticsService:
         
         total_entries = sum(entries_by_type.values())
         
-        # Pattern usage
         patterns_used = self.db.query(func.count(func.distinct(EntryPattern.pattern_id))).filter(
             EntryPattern.created_at >= start_of_day,
             EntryPattern.created_at < end_of_day,
         ).scalar()
         
-        # New patterns
         new_patterns = self.db.query(func.count(Pattern.id)).filter(
             Pattern.created_at >= start_of_day,
             Pattern.created_at < end_of_day,
         ).scalar()
         
-        # Time spent
         total_time = self.db.query(func.sum(Entry.time_spent_minutes)).filter(
             Entry.created_at >= start_of_day,
             Entry.created_at < end_of_day,
             Entry.time_spent_minutes.isnot(None),
         ).scalar() or 0
         
-        # Average time to insight
         avg_insight_time = self.db.query(func.avg(Reflection.time_to_insight_minutes)).join(Entry).filter(
             Entry.created_at >= start_of_day,
             Entry.created_at < end_of_day,
@@ -163,7 +157,6 @@ class AnalyticsService:
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(weeks=weeks_back)
         
-        # Daily breakdown
         daily_stats = []
         current = start_date
         while current < end_date:
@@ -171,11 +164,9 @@ class AnalyticsService:
             daily_stats.append(stats)
             current += timedelta(days=1)
         
-        # Aggregates
         total_entries = sum(d["entries_total"] for d in daily_stats)
         total_time = sum(d["total_time_minutes"] for d in daily_stats)
         
-        # Most active domain
         domain_totals = {}
         for stats in daily_stats:
             for domain, count in stats["entries_by_type"].items():
@@ -200,7 +191,6 @@ class AnalyticsService:
         """
         insights = []
         
-        # 1. Streak - consecutive days with entries
         streak = self._calculate_streak()
         if streak > 0:
             insights.append({
@@ -210,7 +200,6 @@ class AnalyticsService:
                 "priority": 1,
             })
         
-        # 2. Domain balance
         domain_counts = {}
         for entry_type in EntryType:
             count = self.db.query(func.count(Entry.id)).filter(
@@ -232,7 +221,6 @@ class AnalyticsService:
                     "priority": 2,
                 })
         
-        # 3. Pattern mastery
         high_success_patterns = self.db.query(Pattern).filter(
             Pattern.usage_count >= 5,
             Pattern.success_rate >= 0.8,
@@ -247,7 +235,6 @@ class AnalyticsService:
                 "priority": 2,
             })
         
-        # 4. Improvement opportunity
         low_success_patterns = self.db.query(Pattern).filter(
             Pattern.usage_count >= 3,
             Pattern.success_rate < 0.5,
@@ -262,7 +249,6 @@ class AnalyticsService:
                 "priority": 1,
             })
         
-        # 5. Completion rate
         total_entries = self.db.query(func.count(Entry.id)).scalar()
         complete_entries = self.db.query(func.count(Entry.id)).filter(
             Entry.is_complete == True
@@ -311,7 +297,6 @@ class AnalyticsService:
         WHY: Understanding systematic blockers enables
         targeted improvement.
         """
-        # Get all blockers
         blockers = self.db.query(BlockerAnalytics).order_by(
             desc(BlockerAnalytics.occurrence_count)
         ).all()
@@ -341,7 +326,6 @@ class AnalyticsService:
         """
         now = datetime.utcnow()
         
-        # Get items where next_review_at has passed
         due_items = self.db.query(RevisionHistory).filter(
             RevisionHistory.next_review_at <= now
         ).order_by(RevisionHistory.next_review_at).all()
@@ -351,7 +335,6 @@ class AnalyticsService:
         seen_patterns = set()
         
         for item in due_items:
-            # Avoid duplicates
             if item.entry_id and item.entry_id in seen_entries:
                 continue
             if item.pattern_id and item.pattern_id in seen_patterns:

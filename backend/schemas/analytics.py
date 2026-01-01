@@ -67,7 +67,7 @@ class DailyStatsResponse(BaseModel):
     """Schema for daily statistics."""
     date: datetime
     entries_total: int
-    entries_by_type: dict  # {"dsa": 2, "backend": 1, ...}
+    entries_by_type: dict
     patterns_used: int
     new_patterns: int
     total_time_minutes: int
@@ -105,10 +105,10 @@ class InsightResponse(BaseModel):
     WHY: Higher-level analysis to help user understand
     their learning trajectory.
     """
-    insight_type: str  # "strength", "weakness", "progress", "suggestion"
+    insight_type: str
     title: str
     description: str
-    data: Optional[dict] = None  # Supporting data/stats
+    data: Optional[dict] = None
     generated_at: datetime
 
 
@@ -123,8 +123,8 @@ class SimilarEntryResponse(BaseModel):
     entry_title: str
     entry_type: str
     similarity_score: float
-    similarity_reason: str  # Why this is considered similar
-    key_pattern: Optional[str]  # The pattern from this entry
+    similarity_reason: str
+    key_pattern: Optional[str]
     days_ago: int
     
     class Config:
@@ -152,7 +152,7 @@ class RecallResponse(BaseModel):
     with similar entries, blockers to watch, patterns to apply.
     """
     similar_entries: List[SimilarEntryResponse] = []
-    relevant_patterns: List[dict] = []  # Pattern suggestions
-    blocker_warnings: List[str] = []  # "You've struggled with X 3 times"
+    relevant_patterns: List[dict] = []
+    blocker_warnings: List[str] = []
     revision_suggestions: List[RecallSuggestion] = []
     general_insights: List[InsightResponse] = []

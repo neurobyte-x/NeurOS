@@ -19,7 +19,7 @@ router = APIRouter()
 
 @router.get("/daily")
 def get_daily_stats(
-    date: Optional[str] = None,  # ISO format: 2024-01-15
+    date: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """

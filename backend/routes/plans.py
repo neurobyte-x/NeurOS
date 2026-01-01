@@ -53,7 +53,6 @@ async def generate_plan(
     service = get_plan_service()
     
     try:
-        # Prepare level dictionaries
         current_levels = {}
         if request.current_dsa_level:
             current_levels["dsa"] = request.current_dsa_level
@@ -107,21 +106,17 @@ async def get_plan_dashboard(db: Session = Depends(get_db)):
     """
     service = get_plan_service()
     
-    # Get active plans
     active_plans = db.query(LearningPlan).filter(
         LearningPlan.status == PlanStatus.ACTIVE
     ).order_by(LearningPlan.created_at.desc()).all()
     
-    # Get today's tasks
     todays_tasks = service.get_todays_tasks(db)
     
-    # Get upcoming milestones (not completed, ordered by target date)
     upcoming = db.query(PlanMilestone).join(LearningPlan).filter(
         LearningPlan.status == PlanStatus.ACTIVE,
         PlanMilestone.status != MilestoneStatus.COMPLETED
     ).order_by(PlanMilestone.order_index).limit(5).all()
     
-    # Calculate weekly progress for each active plan
     weekly_progress = []
     today = date.today()
     for plan in active_plans:
@@ -132,7 +127,6 @@ async def get_plan_dashboard(db: Session = Depends(get_db)):
         ).first()
         
         if current_schedule:
-            # Count completed tasks from daily_tasks JSON
             tasks_total = 0
             tasks_completed = 0
             for day_tasks in current_schedule.daily_tasks.values():
@@ -150,7 +144,6 @@ async def get_plan_dashboard(db: Session = Depends(get_db)):
                 goals_pending=current_schedule.weekly_goals or []
             ))
     
-    # Overall stats
     total_plans = db.query(LearningPlan).count()
     completed_plans = db.query(LearningPlan).filter(
         LearningPlan.status == PlanStatus.COMPLETED
@@ -218,12 +211,10 @@ async def get_plan(plan_id: int, db: Session = Depends(get_db)):
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
-    # Get milestones
     milestones = db.query(PlanMilestone).filter(
         PlanMilestone.plan_id == plan_id
     ).order_by(PlanMilestone.order_index).all()
     
-    # Get weekly schedules
     schedules = db.query(WeeklySchedule).filter(
         WeeklySchedule.plan_id == plan_id
     ).order_by(WeeklySchedule.week_number).all()
@@ -322,8 +313,6 @@ async def get_plan_progress(plan_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-# === Milestone endpoints ===
-
 @router.get("/{plan_id}/milestones", response_model=List[MilestoneResponse])
 async def get_milestones(plan_id: int, db: Session = Depends(get_db)):
     """Get all milestones for a plan."""
@@ -364,8 +353,6 @@ async def update_milestone(
     db.refresh(milestone)
     return milestone
 
-
-# === Weekly schedule endpoints ===
 
 @router.get("/{plan_id}/weeks", response_model=List[WeeklyScheduleResponse])
 async def get_weekly_schedules(plan_id: int, db: Session = Depends(get_db)):

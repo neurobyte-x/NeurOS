@@ -54,32 +54,23 @@ class Reflection(Base):
     id = Column(Integer, primary_key=True, index=True)
     entry_id = Column(Integer, ForeignKey("entries.id"), nullable=False, unique=True)
     
-    # MANDATORY FIELDS - Core reflection
     context = Column(Text, nullable=False)
     initial_blocker = Column(Text, nullable=False)
     trigger_signal = Column(Text, nullable=False)
     key_pattern = Column(String(500), nullable=False, index=True)
     mistake_or_edge_case = Column(Text, nullable=False)
     
-    # Optional but valuable
     time_to_insight_minutes = Column(Integer, nullable=True)
     
-    # Additional notes (free-form, for anything else)
     additional_notes = Column(Text, nullable=True)
     
-    # What would you do differently?
-    # WHY: Forces forward-thinking, not just retrospection
     next_time_strategy = Column(Text, nullable=True)
     
-    # Self-rated confidence (1-5)
-    # WHY: Track how confident you feel about this pattern
     confidence_level = Column(Integer, nullable=True)
     
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship back to entry
     entry = relationship("Entry", back_populates="reflection")
     
     def __repr__(self):

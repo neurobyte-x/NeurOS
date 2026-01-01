@@ -56,7 +56,6 @@ class RecallService:
         """
         results = []
         
-        # Build search terms
         search_terms = set()
         if title:
             search_terms.update(title.lower().split())
@@ -65,12 +64,10 @@ class RecallService:
         if keywords:
             search_terms.update(k.lower() for k in keywords)
         
-        # Remove common words
         stop_words = {'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'is', 'are'}
         search_terms -= stop_words
         
         if not search_terms:
-            # Return recent entries of same type if no search terms
             query = self.db.query(Entry).filter(Entry.is_complete == True)
             if entry_type:
                 query = query.filter(Entry.entry_type == entry_type)
@@ -80,24 +77,20 @@ class RecallService:
                 results.append(self._entry_to_similar_result(entry, 0.5, "Recent entry"))
             return results
         
-        # Search entries
         query = self.db.query(Entry).filter(Entry.is_complete == True)
         if entry_type:
             query = query.filter(Entry.entry_type == entry_type)
         
         entries = query.all()
         
-        # Score each entry
         scored_entries = []
         for entry in entries:
             score, reason = self._calculate_similarity(entry, search_terms)
             if score > 0:
                 scored_entries.append((entry, score, reason))
         
-        # Sort by score
         scored_entries.sort(key=lambda x: x[1], reverse=True)
         
-        # Return top matches
         for entry, score, reason in scored_entries[:limit]:
             results.append(self._entry_to_similar_result(entry, score, reason))
         
@@ -117,14 +110,12 @@ class RecallService:
         score = 0.0
         reasons = []
         
-        # Title matching
         title_words = set(entry.title.lower().split())
         title_overlap = len(search_terms & title_words)
         if title_overlap > 0:
             score += title_overlap * 0.3
             reasons.append("Title match")
         
-        # Reflection matching
         if entry.reflection:
             reflection_text = " ".join([
                 entry.reflection.context or "",
@@ -137,7 +128,6 @@ class RecallService:
                 score += reflection_overlap * 0.2
                 reasons.append("Reflection match")
         
-        # Pattern matching (check associated patterns)
         for ep in entry.patterns:
             pattern_words = set(ep.pattern.name.lower().split())
             if search_terms & pattern_words:
@@ -179,7 +169,6 @@ class RecallService:
         """
         warnings = []
         
-        # Get flagged blockers
         flagged = self.db.query(BlockerAnalytics).filter(
             BlockerAnalytics.is_flagged == True
         ).all()
@@ -190,7 +179,6 @@ class RecallService:
                 f"{blocker.blocker_text[:100]}..."
             )
         
-        # Check recent blockers in same domain
         if entry_type:
             recent_entries = self.db.query(Entry).filter(
                 Entry.entry_type == entry_type,
@@ -198,7 +186,6 @@ class RecallService:
                 Entry.created_at >= datetime.utcnow() - timedelta(days=30)
             ).all()
             
-            # Group blockers by similarity (simple approach)
             blocker_counts = {}
             for entry in recent_entries:
                 if entry.reflection:
@@ -228,14 +215,12 @@ class RecallService:
         """
         results = []
         
-        # Build search terms
         search_terms = set()
         if title:
             search_terms.update(title.lower().split())
         if keywords:
             search_terms.update(k.lower() for k in keywords)
         
-        # Get patterns for this domain
         query = self.db.query(Pattern)
         if entry_type:
             query = query.filter(
@@ -244,35 +229,29 @@ class RecallService:
         
         patterns = query.all()
         
-        # Score patterns
         scored = []
         for pattern in patterns:
             score = 0
             reason = []
             
-            # Name match
             pattern_words = set(pattern.name.lower().split())
             if search_terms & pattern_words:
                 score += 0.4
                 reason.append("Name match")
             
-            # Trigger match
             if pattern.common_triggers:
                 trigger_words = set(pattern.common_triggers.lower().split())
                 if search_terms & trigger_words:
                     score += 0.3
                     reason.append("Trigger match")
             
-            # Usage bonus
             score += min(pattern.usage_count / 20, 0.2)
             
-            # Success rate bonus
             score += pattern.success_rate * 0.1
             
             if score > 0:
                 scored.append((pattern, score, ", ".join(reason) or "Domain match"))
         
-        # Sort and return
         scored.sort(key=lambda x: x[1], reverse=True)
         
         for pattern, score, reason in scored[:limit]:
@@ -304,7 +283,6 @@ class RecallService:
         """
         suggestions = []
         
-        # Low confidence entries
         low_confidence = self.db.query(Entry).join(Reflection).filter(
             Reflection.confidence_level <= 2,
             Entry.is_complete == True
@@ -320,14 +298,12 @@ class RecallService:
                 "action_text": "Revisit and re-attempt",
             })
         
-        # Old entries not recently reviewed
         cutoff_date = datetime.utcnow() - timedelta(days=settings.REVISION_WINDOW_DAYS)
         old_entries = self.db.query(Entry).filter(
             Entry.is_complete == True,
             Entry.created_at < cutoff_date,
         ).order_by(Entry.created_at).limit(3).all()
         
-        # Check if they've been revised
         for entry in old_entries:
             recent_revision = self.db.query(RevisionHistory).filter(
                 RevisionHistory.entry_id == entry.id,
@@ -345,7 +321,6 @@ class RecallService:
                     "action_text": "Test your recall",
                 })
         
-        # Patterns with low success rate
         low_success_patterns = self.db.query(Pattern).filter(
             Pattern.usage_count >= 2,
             Pattern.success_rate < 0.5
@@ -361,7 +336,6 @@ class RecallService:
                 "action_text": "Practice this pattern",
             })
         
-        # Sort by priority and limit
         suggestions.sort(key=lambda x: x["priority"])
         return suggestions[:limit]
     
@@ -396,30 +370,24 @@ class RecallService:
         WHY: Track blockers to identify systematic weaknesses.
         Called when a reflection is saved.
         """
-        # Normalize blocker text
         normalized = blocker_text.strip().lower()[:200]
         
-        # Look for similar existing blocker
         existing = self.db.query(BlockerAnalytics).filter(
             BlockerAnalytics.blocker_text.ilike(f"%{normalized[:50]}%")
         ).first()
         
         if existing:
-            # Update existing
             existing.occurrence_count += 1
             existing.last_seen_at = datetime.utcnow()
             
-            # Parse and update entry IDs
             entry_ids = json.loads(existing.entry_ids)
             if entry_id not in entry_ids:
                 entry_ids.append(entry_id)
                 existing.entry_ids = json.dumps(entry_ids)
             
-            # Flag if threshold exceeded
             if existing.occurrence_count >= settings.BLOCKER_REPEAT_THRESHOLD:
                 existing.is_flagged = True
         else:
-            # Create new blocker record
             blocker = BlockerAnalytics(
                 blocker_text=normalized,
                 entry_ids=json.dumps([entry_id]),
