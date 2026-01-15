@@ -8,7 +8,9 @@ import {
   BarChart3,
   RefreshCw,
   Sparkles,
-  Map
+  Map,
+  GraduationCap,
+  Network,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -18,6 +20,8 @@ interface LayoutProps {
 const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
   { path: '/new', icon: PlusCircle, label: 'New Entry' },
+  { path: '/review', icon: GraduationCap, label: 'Review (SRS)' },
+  { path: '/graph', icon: Network, label: 'Knowledge Graph' },
   { path: '/recommendations', icon: Sparkles, label: 'Recommendations' },
   { path: '/plans', icon: Map, label: 'Learning Plans' },
   { path: '/patterns', icon: Layers, label: 'Patterns' },
@@ -36,10 +40,10 @@ export default function Layout({ children }: LayoutProps) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-800">
           <Link to="/" className="flex items-center gap-3">
-            <Brain className="w-8 h-8 text-primary-400" />
+            <Brain className="w-8 h-8 text-indigo-400" />
             <div>
-              <h1 className="text-xl font-bold">Thinking OS</h1>
-              <p className="text-xs text-gray-400">Learn by reflection</p>
+              <h1 className="text-xl font-bold">NeurOS</h1>
+              <p className="text-xs text-gray-400">Metacognitive Retention System</p>
             </div>
           </Link>
         </div>
@@ -55,7 +59,7 @@ export default function Layout({ children }: LayoutProps) {
                     to={path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-primary-600 text-white'
+                        ? 'bg-indigo-600 text-white'
                         : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                     }`}
                   >
@@ -73,13 +77,13 @@ export default function Layout({ children }: LayoutProps) {
           <p className="text-xs text-gray-500 text-center">
             Patterns over notes.
             <br />
-            Reflection before persistence.
+            Retention over recall.
           </p>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto bg-gray-950">
         <div className="p-8">
           {children}
         </div>

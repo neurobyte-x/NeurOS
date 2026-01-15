@@ -6,8 +6,7 @@ import {
   ExternalLink, 
   Clock, 
   Target,
-  Trash2,
-  Edit
+  Trash2
 } from 'lucide-react';
 import { entriesApi } from '../lib/api';
 import EntryTypeBadge from '../components/EntryTypeBadge';

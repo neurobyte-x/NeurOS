@@ -7,13 +7,11 @@ import {
   Flame,
   Brain,
   Target,
-  Sparkles,
-  Map,
-  ChevronRight
+  Sparkles
 } from 'lucide-react';
-import { entriesApi, analyticsApi, patternsApi, recommendationsApi, plansApi } from '../lib/api';
+import { entriesApi, analyticsApi } from '../lib/api';
 import EntryCard from '../components/EntryCard';
-import type { Entry, Insight, QuickRecommendation, LearningPlan } from '../lib/types';
+import type { Entry, Insight } from '../lib/types';
 
 export default function Dashboard() {
   const [recentEntries, setRecentEntries] = useState<Entry[]>([]);
@@ -21,8 +19,6 @@ export default function Dashboard() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [streak, setStreak] = useState<{ streak_days: number; message: string } | null>(null);
   const [stats, setStats] = useState<any>(null);
-  const [quickRec, setQuickRec] = useState<QuickRecommendation | null>(null);
-  const [activePlans, setActivePlans] = useState<LearningPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,17 +40,6 @@ export default function Dashboard() {
       setInsights(insightsRes);
       setStreak(streakRes);
       setStats(statsRes);
-      
-      // Load recommendations and plans (non-blocking)
-      try {
-        const quickRecRes = await recommendationsApi.getQuick(30);
-        setQuickRec(quickRecRes);
-      } catch {}
-      
-      try {
-        const plansRes = await plansApi.list({ status: 'active' });
-        setActivePlans(plansRes.slice(0, 2));
-      } catch {}
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
@@ -157,86 +142,37 @@ export default function Dashboard() {
 
       {/* Quick Recommendation & Active Plans */}
       <div className="grid grid-cols-2 gap-6">
-        {/* Quick Recommendation */}
+        {/* Quick Actions */}
         <div className="card bg-gradient-to-br from-primary-50 to-blue-50 border-primary-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary-500" />
-              What to do next?
+              Quick Actions
             </h2>
-            <Link to="/recommendations" className="text-sm text-primary-600 hover:underline flex items-center gap-1">
-              See all <ChevronRight className="w-4 h-4" />
+          </div>
+          <div className="space-y-3">
+            <Link to="/new" className="block p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors border">
+              <div className="flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-primary-500" />
+                <span className="font-medium">Log New Learning</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Capture what you learned today</p>
+            </Link>
+            <Link to="/recall" className="block p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors border">
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-purple-500" />
+                <span className="font-medium">Practice Recall</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Test your memory on past entries</p>
+            </Link>
+            <Link to="/patterns" className="block p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors border">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-green-500" />
+                <span className="font-medium">View Patterns</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">See patterns you've discovered</p>
             </Link>
           </div>
-          {quickRec ? (
-            <div>
-              <h3 className="font-semibold text-gray-900">{quickRec.title}</h3>
-              <p className="text-sm text-gray-600 mt-1">{quickRec.description}</p>
-              <p className="text-xs text-gray-500 mt-2 italic">💡 {quickRec.reasoning}</p>
-              {quickRec.resource_url && (
-                <a
-                  href={quickRec.resource_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-3 text-sm text-primary-600 hover:underline"
-                >
-                  Open Resource →
-                </a>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-gray-500">
-              <p className="text-sm">Generate recommendations to get suggestions</p>
-              <Link to="/recommendations" className="btn-primary mt-3 inline-block text-sm">
-                Get Started
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Active Plans */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Map className="w-5 h-5 text-green-500" />
-              Learning Plans
-            </h2>
-            <Link to="/plans" className="text-sm text-primary-600 hover:underline flex items-center gap-1">
-              Manage <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          {activePlans.length > 0 ? (
-            <div className="space-y-3">
-              {activePlans.map(plan => (
-                <Link
-                  key={plan.id}
-                  to="/plans"
-                  className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-sm">{plan.title}</span>
-                    <span className="text-xs text-gray-500">Week {plan.current_week}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-500 h-2 rounded-full transition-all"
-                      style={{ width: `${plan.progress_percentage}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {plan.completed_milestones}/{plan.total_milestones} milestones completed
-                  </p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-gray-500">
-              <p className="text-sm">No active learning plans</p>
-              <Link to="/plans" className="btn-secondary mt-3 inline-block text-sm">
-                Create a Plan
-              </Link>
-            </div>
-          )}
         </div>
       </div>
 

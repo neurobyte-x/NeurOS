@@ -65,13 +65,10 @@ export default function Recommendations() {
 
   const loadDashboard = async () => {
     try {
-      const [dashboard, gaps] = await Promise.all([
-        recommendationsApi.getDashboard(),
-        recommendationsApi.getSkillGaps().catch(() => []),
-      ]);
+      const dashboard = await recommendationsApi.getDashboard();
       
       setRecommendations(dashboard.active_recommendations || []);
-      setSkillGaps(gaps);
+      setSkillGaps([]);
       setQuickRec(dashboard.daily_suggestion);
       setStats(dashboard.stats);
     } catch (error) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Edit3, Lightbulb, AlertCircle, Check } from 'lucide-react';
-import { entriesApi, recallApi, aiApi, type AnalyzeResponse } from '../lib/api';
+import { entriesApi, recallApi, aiApi } from '../lib/api';
 import { ENTRY_TYPES, type EntryCreate, type RecallResponse } from '../lib/types';
 
 type Step = 'describe' | 'analyzing' | 'review' | 'recall' | 'creating';
@@ -11,7 +11,6 @@ export default function NewEntry() {
   const [step, setStep] = useState<Step>('describe');
   const [aiEnabled, setAiEnabled] = useState(false);
   const [rawInput, setRawInput] = useState('');
-  const [analyzedData, setAnalyzedData] = useState<AnalyzeResponse | null>(null);
   const [formData, setFormData] = useState<EntryCreate>({
     title: '',
     entry_type: 'dsa',
@@ -49,7 +48,6 @@ export default function NewEntry() {
 
     try {
       const result = await aiApi.analyze(rawInput);
-      setAnalyzedData(result);
       
       // Populate form data
       setFormData(prev => ({
@@ -108,7 +106,6 @@ export default function NewEntry() {
       
       // Add reflection immediately
       await entriesApi.addReflection(entry.id, {
-        entry_id: entry.id,
         ...reflectionData,
       });
 

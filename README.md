@@ -1,19 +1,37 @@
-# NeurOS
+# NeurOS 2.0
 
-> A personal knowledge system that captures **thinking patterns**, not just solutions.
+> **Metacognitive Learning & Retention System** - A personal knowledge system that captures **thinking patterns**, tracks **memory decay**, and optimizes **long-term retention** through spaced repetition.
 
-## Philosophy
+## 🧠 Philosophy
 
-Most note-taking systems capture what you learned. Thinking OS captures **how** you learned it.
+Most note-taking systems capture what you learned. NeurOS captures **how** you learned it and ensures you **remember** it.
 
 - **No reflection → No persistence**: Every entry requires mandatory reflection
-- **Patterns over notes**: Build a vocabulary of reusable thinking patterns
-- **Past struggles as teachers**: The recall system surfaces relevant history
-- **Data-driven improvement**: Track blockers, strengths, and weaknesses
+- **Patterns over notes**: Build a vocabulary of reusable thinking patterns  
+- **Retention over recall**: Active spaced repetition with SuperMemo-2 algorithm
+- **Decay tracking**: Ebbinghaus forgetting curve visualization
+- **Knowledge graph**: Connect concepts to see the bigger picture
+- **Flash coding**: Practice with code templates
+- **Daily intelligence**: Morning standup with personalized priorities
 
-## Quick Start
+## 🚀 Quick Start
 
-### Backend Setup
+### Using Docker (Recommended)
+
+```bash
+# Clone and start all services
+cd NeurOS
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+### Manual Setup
+
+#### Backend
 
 ```bash
 cd NeurOS/backend
@@ -24,16 +42,20 @@ python -m venv venv
 # source venv/bin/activate  # Linux/Mac
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r app/requirements.txt
 
-# Run the server
-python main.py
+# Set environment variables
+export DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/neuros
+export JWT_SECRET_KEY=your-secret-key
+
+# Run database migrations
+alembic upgrade head
+
+# Start the server
+uvicorn app.main:app --reload
 ```
 
-Backend runs at `http://localhost:8000`
-API docs at `http://localhost:8000/docs`
-
-### Frontend Setup
+#### Frontend
 
 ```bash
 cd NeurOS/frontend
@@ -41,43 +63,155 @@ cd NeurOS/frontend
 # Install dependencies
 npm install
 
-# Run development server
+# Start development server
 npm run dev
 ```
 
-Frontend runs at `http://localhost:3000`
+## ✨ Key Features
 
-## Core Concepts
+### 1. Spaced Repetition System (SRS)
+- **SuperMemo-2 algorithm** for optimal review scheduling
+- **Quality-based ratings** (1-5) adjust intervals dynamically
+- **Due items** prioritized in daily review queue
+- **Suspension/bury** for temporary exclusion
+
+### 2. Decay Tracking
+- **Ebbinghaus forgetting curve** visualization
+- **Critical alerts** when retention drops below threshold
+- **Practice heatmap** showing activity patterns
+- **Strength tracking** across all knowledge items
+
+### 3. Knowledge Graph
+- **D3.js visualization** of concept connections
+- **Node types**: concepts, techniques, patterns, algorithms
+- **Relationship types**: prerequisites, related, contrast, examples
+- **Mastery levels** (1-5) shown by node size
+
+### 4. Flash Coding
+- **Monaco Editor** integration for code practice
+- **Pattern templates** with solutions hidden
+- **Quality self-rating** after each attempt
+- **Language support**: Python, JS, TS, Rust, Go, and more
+
+### 5. Daily Intelligence
+- **Morning standup** with personalized recommendations
+- **Priority stack**: urgent reviews, decaying items, new material
+- **Time-aware greetings** and motivational messaging
+- **Progress tracking** toward daily goals
+
+## 📚 Core Concepts
 
 ### Entries
 Learning moments across domains:
-- **DSA / CP**: Algorithm problems, competitive programming
-- **Backend**: FastAPI, APIs, system design
-- **AI / ML**: Machine learning, GenAI experiments
-- **Debug**: Bug fixes, debugging sessions
-- **Interview**: Interview questions, mock sessions
-- **Concept**: Pure learning, theory understanding
-- **Project**: Project-based learning
+- **Concept**: Core ideas, theory, mental models
+- **Problem**: DSA, competitive programming, exercises
+- **Project**: Project-based learning, builds
+- **Debug**: Bug fixes, troubleshooting sessions
+- **Insight**: Aha moments, realizations
+- **Question**: Open questions, research topics
 
 ### Mandatory Reflection
-Every entry requires:
-1. **Context**: What were you trying to solve/build?
-2. **Initial Blocker**: Why were you stuck or unsure?
-3. **Trigger Signal**: What revealed the correct direction?
-4. **Key Pattern**: Name it in YOUR words
-5. **Mistake/Edge Case**: One thing to remember
+Every entry requires 5 reflection fields:
+1. **What I learned**: Core takeaway
+2. **What was confusing**: Initial blockers
+3. **What to explore next**: Future directions
+4. **Confidence level**: Self-assessment (1-5)
+5. **Key pattern**: Named in YOUR words
 
 ### Patterns
 User-defined thinking patterns:
 - Cross-domain patterns (most valuable)
 - Usage tracking and success rates
-- Common triggers and mistakes
+- Code templates for practice
 
-### Recall System
+### Review Queue
 Before starting new work:
-- Find similar past entries
-- Get relevant pattern suggestions
-- See blocker warnings ("you struggled with X 3 times")
+- See items due for review
+- Track streak and completion
+- Quality ratings update scheduling
+
+## 🏗 Architecture
+
+```
+NeurOS/
+├── backend/
+│   └── app/
+│       ├── api/v1/endpoints/    # FastAPI routes
+│       ├── core/                # Algorithms (SRS, decay)
+│       ├── models/              # SQLAlchemy models
+│       ├── schemas/             # Pydantic schemas
+│       └── services/            # Business logic
+├── frontend/
+│   └── src/
+│       ├── components/          # React components
+│       ├── pages/               # Route pages
+│       ├── lib/                 # API client, types
+│       └── stores/              # Zustand stores
+└── docker-compose.yml           # Full stack deployment
+```
+
+### Tech Stack
+
+**Backend:**
+- FastAPI + Python 3.11
+- PostgreSQL + SQLAlchemy 2.0 (async)
+- Alembic migrations
+- Celery + Redis for background tasks
+- JWT authentication
+
+**Frontend:**
+- React 18 + TypeScript
+- TanStack Query for server state
+- Zustand for client state
+- D3.js for knowledge graph
+- Monaco Editor for code
+- Tailwind CSS
+
+## 📊 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/auth/register` | POST | Create account |
+| `/api/v1/auth/login` | POST | Get tokens |
+| `/api/v1/entries` | GET/POST | List/create entries |
+| `/api/v1/patterns` | GET/POST | List/create patterns |
+| `/api/v1/reviews/queue` | GET | Get review queue |
+| `/api/v1/reviews/{id}/submit` | POST | Submit review |
+| `/api/v1/decay/overview` | GET | Decay statistics |
+| `/api/v1/standup/today` | GET | Daily plan |
+| `/api/v1/graph` | GET | Knowledge graph |
+| `/api/v1/analytics/dashboard` | GET | Analytics data |
+
+## 🔧 Environment Variables
+
+```env
+# Backend
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/neuros
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET_KEY=your-super-secret-jwt-key
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Frontend
+VITE_API_URL=http://localhost:8000
+```
+
+## 📈 Roadmap
+
+- [ ] AI-powered pattern extraction
+- [ ] Collaborative knowledge sharing
+- [ ] Mobile app (React Native)
+- [ ] Browser extension for quick capture
+- [ ] Obsidian/Notion integration
+- [ ] Export to Anki format
+
+## 📝 License
+
+MIT License - See LICENSE file for details.
+
+---
+
+**Remember**: Patterns over notes. Retention over recall. 🧠
 - Get revision recommendations
 
 ## API Overview
