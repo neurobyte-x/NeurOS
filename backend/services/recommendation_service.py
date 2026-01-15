@@ -71,9 +71,10 @@ class RecommendationService:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             self.llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-preview-05-20",
+                model="gemini-2.5-flash",
                 google_api_key=settings.GEMINI_API_KEY,
                 temperature=0.4,  # Slightly creative for recommendations
+                max_retries=0,  # Fail fast on quota errors
             )
             self.parser = JsonOutputParser(pydantic_object=RecommendationSet)
             self._recommendation_chain = None

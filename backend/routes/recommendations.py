@@ -124,10 +124,8 @@ async def get_recommendation_dashboard(db: Session = Depends(get_db)):
     """
     Get dashboard data for recommendations section.
     
-    Returns active recommendations, skill gaps, and daily suggestion.
+    Returns active recommendations from database (no AI calls).
     """
-    service = get_recommendation_service()
-    
     active_recs = db.query(Recommendation).filter(
         Recommendation.is_completed == False,
         Recommendation.is_dismissed == False
@@ -136,25 +134,15 @@ async def get_recommendation_dashboard(db: Session = Depends(get_db)):
         Recommendation.created_at.desc()
     ).limit(10).all()
     
-    try:
-        skill_gaps = service.analyze_skill_gaps(db)
-    except:
-        skill_gaps = []
-    
-    try:
-        daily_suggestion = service.get_quick_recommendation(db, 30)
-    except:
-        daily_suggestion = None
-    
     total = db.query(Recommendation).count()
     completed = db.query(Recommendation).filter(Recommendation.is_completed == True).count()
     dismissed = db.query(Recommendation).filter(Recommendation.is_dismissed == True).count()
     
     return RecommendationDashboard(
         active_recommendations=[RecommendationSummary.model_validate(r) for r in active_recs],
-        skill_gaps=[SkillGapAnalysis(**g) for g in skill_gaps] if skill_gaps else [],
-        daily_suggestion=QuickRecommendation(**daily_suggestion) if daily_suggestion else None,
-        weekly_focus=skill_gaps[0].get("suggested_focus") if skill_gaps else None,
+        skill_gaps=[],
+        daily_suggestion=None,
+        weekly_focus=None,
         stats={
             "total": total,
             "completed": completed,

@@ -44,9 +44,10 @@ class AIService:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             self.llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-preview-05-20",
+                model="gemini-2.5-flash",
                 google_api_key=settings.GEMINI_API_KEY,
                 temperature=0.3,  # Lower for more consistent extraction
+                max_retries=0,  # Fail fast on quota errors
             )
             self.parser = JsonOutputParser(pydantic_object=ExtractedLearning)
             self.chain = self._build_chain()
